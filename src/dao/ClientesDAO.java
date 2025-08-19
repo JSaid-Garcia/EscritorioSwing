@@ -14,17 +14,16 @@ import java.util.List;
  * @author jainer Said Garcia Gonzalez
  * @author Emmanuel Gomez
  */
-public class ClientesDAO {
 
-    private final String url = "jdbc:sqlserver://localhost:1433;databaseName=EscritorioSwing;encrypt=true;trustServerCertificate=true;";
-    private final String user = "sa"; // cambia por tu usuario
-    private final String password = "tu_password"; // cambia por tu clave
+
+public class ClientesDAO {
 
     // Insertar un cliente
     public void insertar(Clientes cliente) {
         String sql = "INSERT INTO Clientes (nombre, correo, telefono, cedulaCifrada) VALUES (?, ?, ?, ?)";
-        try (Connection conn = DriverManager.getConnection(url, user, password);
+        try (Connection conn = ConexionBD.getConnection();
              PreparedStatement ps = conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
+
             ps.setString(1, cliente.getNombre());
             ps.setString(2, cliente.getCorreo());
             ps.setString(3, cliente.getTelefono());
@@ -36,6 +35,7 @@ public class ClientesDAO {
                     cliente.setIdCliente(rs.getInt(1));
                 }
             }
+
         } catch (SQLException e) {
             e.printStackTrace();
         }
@@ -44,14 +44,16 @@ public class ClientesDAO {
     // Actualizar cliente
     public void actualizar(Clientes cliente) {
         String sql = "UPDATE Clientes SET nombre=?, correo=?, telefono=?, cedulaCifrada=? WHERE idCliente=?";
-        try (Connection conn = DriverManager.getConnection(url, user, password);
+        try (Connection conn = ConexionBD.getConnection();
              PreparedStatement ps = conn.prepareStatement(sql)) {
+
             ps.setString(1, cliente.getNombre());
             ps.setString(2, cliente.getCorreo());
             ps.setString(3, cliente.getTelefono());
             ps.setBytes(4, cliente.getCedulaCifrada());
             ps.setInt(5, cliente.getIdCliente());
             ps.executeUpdate();
+
         } catch (SQLException e) {
             e.printStackTrace();
         }
@@ -60,49 +62,55 @@ public class ClientesDAO {
     // Eliminar cliente
     public void eliminar(int idCliente) {
         String sql = "DELETE FROM Clientes WHERE idCliente=?";
-        try (Connection conn = DriverManager.getConnection(url, user, password);
+        try (Connection conn = ConexionBD.getConnection();
              PreparedStatement ps = conn.prepareStatement(sql)) {
+
             ps.setInt(1, idCliente);
             ps.executeUpdate();
+
         } catch (SQLException e) {
             e.printStackTrace();
         }
     }
 
-    // Buscar por ID
+    // Buscar cliente por ID
     public Clientes buscarPorId(int idCliente) {
         String sql = "SELECT * FROM Clientes WHERE idCliente=?";
-        try (Connection conn = DriverManager.getConnection(url, user, password);
+        try (Connection conn = ConexionBD.getConnection();
              PreparedStatement ps = conn.prepareStatement(sql)) {
+
             ps.setInt(1, idCliente);
             try (ResultSet rs = ps.executeQuery()) {
                 if (rs.next()) {
                     return mapearCliente(rs);
                 }
             }
+
         } catch (SQLException e) {
             e.printStackTrace();
         }
         return null;
     }
 
-    // Listar todos
+    // Listar todos los clientes
     public List<Clientes> listar() {
         List<Clientes> lista = new ArrayList<>();
         String sql = "SELECT * FROM Clientes";
-        try (Connection conn = DriverManager.getConnection(url, user, password);
+        try (Connection conn = ConexionBD.getConnection();
              Statement st = conn.createStatement();
              ResultSet rs = st.executeQuery(sql)) {
+
             while (rs.next()) {
                 lista.add(mapearCliente(rs));
             }
+
         } catch (SQLException e) {
             e.printStackTrace();
         }
         return lista;
     }
 
-    // Mapeo ResultSet -> Clientes
+    
     private Clientes mapearCliente(ResultSet rs) throws SQLException {
         int id = rs.getInt("idCliente");
         String nombre = rs.getString("nombre");
@@ -112,3 +120,4 @@ public class ClientesDAO {
         return new Clientes(id, nombre, correo, telefono, cedula);
     }
 }
+
